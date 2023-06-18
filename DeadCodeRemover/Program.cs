@@ -22,13 +22,22 @@ namespace DeadCodeRemover
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         public static async Task Main(string[] args)
         {
-            await Parser.Default.ParseArguments<Options>(args).WithParsedAsync(RunWithOptions);
+            var instances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            MSBuildLocator.RegisterMSBuildPath(@"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin"); //\MSBuild.exe
+            //MSBuildLocator.RegisterDefaults();
+            //await Parser.Default.ParseArguments<Options>(args).WithParsedAsync(RunWithOptions);
+            await RunWithOptions(null);
             Console.ReadKey();
         }
         private static async Task RunWithOptions(Options opt)
         {
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
             var instance = visualStudioInstances[0];
+            var solutionFilePath = @"Proj.shproj";// opt.Solution;
+            if(opt==null) opt=new Options();
+            opt.Project = solutionFilePath;
+            opt.Solution = solutionFilePath;
+
             var knowTypes = new KnownTypesRepository();
             knowTypes.LoadKnownTypes(Path.GetDirectoryName(opt.Solution));
             MSBuildLocator.RegisterInstance(instance);
